@@ -46,6 +46,27 @@ const InvoiceSchema = z.object({
 
 export type Invoice = z.infer<typeof InvoiceSchema>;
 
+const AgingBucketSchema = z.object({
+  count: z.number(),
+  balance: z.string(),
+});
+
+const AgingResponseSchema = z.object({
+  reference_date: z.string(),
+  summary: z.record(AgingBucketSchema),
+  rows: z.array(
+    z.object({
+      id: z.number(),
+      number: z.string(),
+      customer: z.string(),
+      balance: z.string(),
+      due_date: z.string(),
+      days_past_due: z.number(),
+      bucket: z.string(),
+    }),
+  ),
+});
+
 async function fetchJson<T>(path: string, schema: z.ZodSchema<T>, options?: { expectResults?: boolean }): Promise<T> {
   const token = getAuthToken();
   const headers: HeadersInit = {
@@ -125,4 +146,8 @@ export async function createInvoice(payload: {
 
 export async function listCustomers(): Promise<z.infer<typeof CustomerSchema>[]> {
   return fetchJson("customers/", z.array(CustomerSchema), { expectResults: true });
+}
+
+export async function getAgingBuckets() {
+  return fetchJson("reports/ar-aging/", AgingResponseSchema);
 }

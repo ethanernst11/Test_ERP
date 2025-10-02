@@ -11,6 +11,7 @@ from apps.reports.views import (
     CashFlowView,
     IncomeStatementView,
     TrialBalanceView,
+    AccountsReceivableAgingView,
 )
 
 router = DefaultRouter()
@@ -34,4 +35,5 @@ urlpatterns = [
     path("reports/income-statement/", IncomeStatementView.as_view(), name="reports-income-statement"),
     path("reports/balance-sheet/", BalanceSheetView.as_view(), name="reports-balance-sheet"),
     path("reports/cash-flow/", CashFlowView.as_view(), name="reports-cash-flow"),
+    path("reports/ar-aging/", AccountsReceivableAgingView.as_view(), name="reports-ar-aging"),
 ]

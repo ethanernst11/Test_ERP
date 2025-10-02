@@ -9,6 +9,7 @@ from typing import Any, Dict, Iterable, List, Tuple
 from django.db.models import Sum
 
 from apps.ledger.models import Account, JournalEntry, JournalLine
+from apps.invoicing.models import Invoice
 
 
 
@@ -304,4 +305,70 @@ def cash_flow(start: date, end: date) -> Dict[str, Any]:
             {"label": "Financing Activities", "amount": str(financing)},
         ],
         "net_change": str(net_change),
+    }
+
+
+def accounts_receivable_aging(reference_date: date | None = None) -> Dict[str, Any]:
+    if reference_date is None:
+        reference_date = date.today()
+
+    buckets_config = [
+        (0, 30, "0-30"),
+        (31, 60, "31-60"),
+        (61, 90, "61-90"),
+        (91, 10_000, "90+"),
+    ]
+
+    summary: Dict[str, Dict[str, Any]] = {
+        label: {"count": 0, "balance": Decimal("0")}
+        for _, _, label in buckets_config
+    }
+    summary["Current"] = {"count": 0, "balance": Decimal("0")}
+
+    rows: List[Dict[str, Any]] = []
+
+    invoices = (
+        Invoice.objects.select_related("customer")
+        .order_by("due_date")
+    )
+
+    for invoice in invoices:
+        balance = invoice.balance_due
+        if balance <= 0:
+            continue
+        days_past_due = (reference_date - invoice.due_date).days
+        if days_past_due < 0:
+            bucket = "Current"
+        else:
+            bucket = "90+"
+            for lower, upper, label in buckets_config:
+                if lower <= days_past_due <= upper:
+                    bucket = label
+                    break
+
+        summary.setdefault(bucket, {"count": 0, "balance": Decimal("0")})
+        summary[bucket]["count"] += 1
+        summary[bucket]["balance"] += balance
+
+        rows.append(
+            {
+                "id": invoice.id,
+                "number": invoice.number,
+                "customer": invoice.customer.name,
+                "balance": str(balance),
+                "due_date": invoice.due_date.isoformat(),
+                "days_past_due": max(days_past_due, 0),
+                "bucket": bucket,
+            }
+        )
+
+    formatted_summary = {
+        label: {"count": data["count"], "balance": str(data["balance"])}
+        for label, data in summary.items()
+    }
+
+    return {
+        "reference_date": reference_date.isoformat(),
+        "summary": formatted_summary,
+        "rows": rows,
     }

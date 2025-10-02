@@ -1,12 +1,14 @@
 import Link from "next/link";
 
-import { listInvoices } from "@/lib/invoices";
+import { getAgingBuckets, listInvoices } from "@/lib/invoices";
 import { InvoicePaymentForm } from "@/components/invoice-payment-form";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function InvoicesPage() {
-  const invoices = await listInvoices();
+  const [invoices, aging] = await Promise.all([listInvoices(), getAgingBuckets()]);
   const outstanding = invoices.reduce((acc, invoice) => acc + Number(invoice.balance_due), 0);
+
+  const bucketEntries = Object.entries(aging.summary);
 
   return (
     <section className="space-y-6">
@@ -22,6 +24,18 @@ export default async function InvoicesPage() {
           New Invoice
         </Link>
       </header>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {bucketEntries.map(([label, data]) => (
+          <div key={label} className="rounded-lg border border-border bg-white p-4 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+            <div className="mt-2 flex items-baseline justify-between">
+              <span className="text-lg font-semibold text-slate-900">{formatCurrency(data.balance)}</span>
+              <span className="text-sm text-slate-500">{data.count} open</span>
+            </div>
+          </div>
+        ))}
+      </div>
 
       <div className="overflow-hidden rounded-lg border border-border bg-white shadow-sm">
         <table className="min-w-full divide-y divide-border">

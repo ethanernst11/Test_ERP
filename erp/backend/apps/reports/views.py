@@ -10,7 +10,7 @@ from .serializers import (
     DateRangeSerializer,
     IncomeStatementQuerySerializer,
 )
-from .services import balance_sheet, cash_flow, income_statement, trial_balance
+from .services import balance_sheet, cash_flow, income_statement, trial_balance, accounts_receivable_aging
 
 
 class TrialBalanceView(APIView):
@@ -61,4 +61,12 @@ class CashFlowView(APIView):
             serializer.validated_data["start_date"],
             serializer.validated_data["end_date"],
         )
+        return Response(data)
+
+
+class AccountsReceivableAgingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        data = accounts_receivable_aging()
         return Response(data)
