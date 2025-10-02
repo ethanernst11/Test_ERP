@@ -14,11 +14,18 @@ type SidebarProps = {
 export function Sidebar({ approvalsCount = 0 }: SidebarProps) {
   const pathname = usePathname();
   const [reportingOpen, setReportingOpen] = useState(true);
+  const [revenueOpen, setRevenueOpen] = useState(true);
 
   const itemClasses = (href: string) =>
     clsx(
       "block rounded-md px-3 py-2 text-sm font-medium transition", // base
       pathname === href ? "bg-accent/10 text-accent" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+    );
+
+  const sectionButtonClasses = (active: boolean) =>
+    clsx(
+      "flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-semibold transition",
+      active ? "bg-accent/10 text-accent" : "text-slate-700 hover:bg-slate-100 hover:text-slate-900",
     );
 
   return (
@@ -35,7 +42,7 @@ export function Sidebar({ approvalsCount = 0 }: SidebarProps) {
           <button
             type="button"
             onClick={() => setReportingOpen((value) => !value)}
-            className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+            className={sectionButtonClasses(pathname.startsWith("/reports"))}
           >
             <span>Reporting</span>
             <span aria-hidden>{reportingOpen ? "-" : "+"}</span>
@@ -63,9 +70,26 @@ export function Sidebar({ approvalsCount = 0 }: SidebarProps) {
             </div>
           )}
         </div>
-        <Link href="/revenue" className={itemClasses("/revenue")}>
-          Revenue
-        </Link>
+        <div>
+          <button
+            type="button"
+            onClick={() => setRevenueOpen((value) => !value)}
+            className={sectionButtonClasses(pathname.startsWith("/revenue"))}
+          >
+            <span>Revenue</span>
+            <span aria-hidden>{revenueOpen ? "-" : "+"}</span>
+          </button>
+          {revenueOpen && (
+            <div className="mt-1 space-y-1 pl-3">
+              <Link href="/revenue" className={itemClasses("/revenue")}>
+                Overview
+              </Link>
+              <Link href="/revenue/invoices" className={itemClasses("/revenue/invoices")}>
+                Invoices
+              </Link>
+            </div>
+          )}
+        </div>
         <Link href="/accounting" className={itemClasses("/accounting")}>
           Accounting
         </Link>

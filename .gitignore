@@ -30,6 +30,9 @@ coverage/
 # Docker volumes (local)
 **/db-data/
 
+# Python bytecode for management command discovery
+**/*.pyc
+
 # macOS
 .DS_Store
 

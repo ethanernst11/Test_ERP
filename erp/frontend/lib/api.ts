@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { z } from "zod";
 
 import { env } from "@/lib/env";
@@ -45,9 +44,10 @@ const IncomeStatementResponseSchema = z.object({
 export type { IncomeStatementRow };
 export type IncomeStatementResponse = z.infer<typeof IncomeStatementResponseSchema>;
 
-function getAuthToken(): string | undefined {
+export function getAuthToken(): string | undefined {
   if (typeof window === "undefined") {
     try {
+      const { cookies } = require("next/headers") as typeof import("next/headers");
       return cookies().get("auth_token")?.value;
     } catch (error) {
       return undefined;

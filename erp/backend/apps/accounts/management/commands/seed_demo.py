@@ -28,6 +28,7 @@ class Command(BaseCommand):
             self._seed_budgets(users["accountant"], accounts)
             self._seed_approvals(users["admin"], accounts)
             self._seed_checklist(users["accountant"])
+            self._seed_invoices(users["accountant"])
         self.stdout.write(self.style.SUCCESS("Demo data seeded."))
 
     def _ensure_roles(self) -> dict[str, Role]:
@@ -91,6 +92,85 @@ class Command(BaseCommand):
                 account.save(update_fields=["parent"])
             accounts[record["code"]] = account
         return accounts
+
+    def _seed_invoices(self, user: User) -> None:
+        from apps.invoicing.models import Customer, Invoice, InvoiceLine, Payment
+
+        customers = [
+            {"name": "Acme Corporation", "email": "finance@acme.com"},
+            {"name": "Globex Dynamics", "email": "accounts@globex.com"},
+        ]
+        customer_objs = []
+        for data in customers:
+            customer, _ = Customer.objects.get_or_create(name=data["name"], defaults={"email": data["email"]})
+            if customer.email != data["email"]:
+                customer.email = data["email"]
+                customer.save(update_fields=["email"])
+            customer_objs.append(customer)
+
+        today = date.today()
+        invoice_specs = [
+            {
+                "number": "INV-1001",
+                "customer": customer_objs[0],
+                "issue_date": today.replace(day=1),
+                "due_date": today.replace(day=min(28, today.day)),
+                "status": Invoice.Status.PAID,
+                "line_items": [
+                    {"description": "Implementation support", "quantity": Decimal("1"), "unit_price": Decimal("1250")},
+                    {"description": "Premium subscription", "quantity": Decimal("1"), "unit_price": Decimal("750")},
+                ],
+                "payments": [
+                    {"date": today, "amount": Decimal("2000"), "method": "ACH"},
+                ],
+            },
+            {
+                "number": "INV-1002",
+                "customer": customer_objs[1],
+                "issue_date": today.replace(day=max(1, min(2, today.day))),
+                "due_date": today.replace(day=min(30, today.day + 26)),
+                "status": Invoice.Status.PARTIALLY_PAID,
+                "line_items": [
+                    {"description": "Quarterly training", "quantity": Decimal("1"), "unit_price": Decimal("145")},
+                ],
+                "payments": [
+                    {"date": today, "amount": Decimal("100.24"), "method": "Credit Card"},
+                ],
+            },
+        ]
+
+        for spec in invoice_specs:
+            invoice, created = Invoice.objects.get_or_create(
+                number=spec["number"],
+                defaults={
+                    "customer": spec["customer"],
+                    "issue_date": spec["issue_date"],
+                    "due_date": spec["due_date"],
+                    "status": spec["status"],
+                    "created_by": user,
+                },
+            )
+            if not created:
+                continue
+            for line in spec["line_items"]:
+                quantity = line.get("quantity", Decimal("1"))
+                unit_price = line.get("unit_price", Decimal("0"))
+                amount = quantity * unit_price
+                InvoiceLine.objects.create(
+                    invoice=invoice,
+                    description=line["description"],
+                    quantity=quantity,
+                    unit_price=unit_price,
+                    amount=amount,
+                )
+            for payment in spec.get("payments", []):
+                Payment.objects.create(
+                    invoice=invoice,
+                    date=payment["date"],
+                    amount=payment["amount"],
+                    method=payment.get("method", ""),
+                    reference=payment.get("reference", ""),
+                )
 
     def _seed_journal_entries(self, accountant: User, approver: User, accounts: dict[str, Account]) -> None:
         current_year = timezone.now().date().year

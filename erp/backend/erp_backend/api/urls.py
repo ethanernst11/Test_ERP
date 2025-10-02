@@ -5,6 +5,7 @@ from apps.accounts.viewsets import AuthViewSet, RoleViewSet, UserViewSet
 from apps.ledger.viewsets import AccountViewSet, JournalEntryViewSet
 from apps.budgets.viewsets import BudgetViewSet
 from apps.approvals.viewsets import ApprovalViewSet, CloseChecklistItemViewSet
+from apps.invoicing.viewsets import CustomerViewSet, InvoiceViewSet, PaymentViewSet
 from apps.reports.views import (
     BalanceSheetView,
     CashFlowView,
@@ -20,6 +21,9 @@ router.register(r"journal-entries", JournalEntryViewSet, basename="journalentry"
 router.register(r"budgets", BudgetViewSet, basename="budget")
 router.register(r"approvals", ApprovalViewSet, basename="approval")
 router.register(r"close-checklist", CloseChecklistItemViewSet, basename="closechecklist")
+router.register(r"customers", CustomerViewSet, basename="customer")
+router.register(r"invoices", InvoiceViewSet, basename="invoice")
+router.register(r"payments", PaymentViewSet, basename="payment")
 
 urlpatterns = [
     path("", include(router.urls)),

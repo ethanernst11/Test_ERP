@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "apps.reports",
     "apps.budgets",
     "apps.approvals",
+    "apps.invoicing",
 ]
 
 MIDDLEWARE = [
@@ -100,7 +101,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
