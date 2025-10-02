@@ -1,2 +1,3 @@
-# Test_ERP
-This is an attempt to create features important to an ERP platform
+# ERP Scaffold
+
+Source lives in [`erp/`](./erp). See [`erp/README.md`](./erp/README.md) for setup instructions.

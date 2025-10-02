@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+*.log
+*.sqlite3
+.pytest_cache/
+.coverage
+
+# Virtual environments
+venv/
+.venv/
+**/.venv/
+.env
+*.env
+.erp-env
+
+# Node
+node_modules/
+**/node_modules/
+.npm/
+.pnpm-store/
+.next/
+**/.next/
+.dist/
+dist/
+coverage/
+
+# Docker volumes (local)
+**/db-data/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Keep example env files
+!.env.example
+!**/.env.example
